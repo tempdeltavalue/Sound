@@ -15,6 +15,7 @@ import moviepy.video.io.ImageSequenceClip
 
 #http://newt.phys.unsw.edu.au/jw/sound.spectrum.html
 #https://towardsdatascience.com/understanding-audio-data-fourier-transform-fft-spectrogram-and-speech-recognition-a4072d228520
+#https://stackoverflow.com/questions/35281427/fast-python-plotting-library-to-draw-plots-directly-on-2d-numpy-array-image-buff
 
 def main():
     print('MAIN')
@@ -24,7 +25,7 @@ def main():
     samples, sample_rate = librosa.load(path)
     duration = len(samples) / sample_rate
     print('duration', duration)
-    fps = 1
+    fps = 100
 
     print(f'Samples len {len(samples)}, sample rate {sample_rate}, duration {len(samples) / sample_rate}')
 
@@ -76,7 +77,7 @@ def main():
 
 
 def show_video(start_offset_index, spectrogram, video_side, delta, fps):
-    is_record = True
+    is_record = False
 
     # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     # fourcc = cv2.VideoWriter_fourcc(*'DIVX')
@@ -102,9 +103,9 @@ def show_video(start_offset_index, spectrogram, video_side, delta, fps):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        cv2.imshow('frame', image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # cv2.imshow('frame', image)
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
 
         offset_index += delta
         print(f'offset_index {offset_index}, len {spectrogram.shape[1]}, len out_video {len(out_video)}')

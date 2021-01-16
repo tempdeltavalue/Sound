@@ -1,33 +1,35 @@
-import numpy as np
 import cv2
+from pylab import *
+from moviepy.video.io.bindings import mplfig_to_npimage
 
+cap = cv2.VideoCapture(0)
+ret, frame = cap.read() # frame is a 2D numpy array
+h,w,_ = frame.shape
+writer = cv2.VideoWriter( 'out.mp4', cv2.VideoWriter_fourcc('D','I','V','3'),
+                fps=30, frameSize=(w,h), isColor=True )
 
-if __name__ == '__main__':
-    cap = cv2.VideoCapture(0)
+# prepare a small figure to embed into frame
+fig, ax = subplots(figsize=(4,3), facecolor='w')
+B = frame[:,:,0].sum(axis=0)
+line, = ax.plot(B, lw=3)
+xlim([0,w])
+ylim([40000, 130000]) # setup wide enough range here
+box('off')
+tight_layout()
 
-    # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    out = cv2.VideoWriter('output.avi',fourcc, 48 * 2, (2**9,2**9))
-    # out = cv2.VideoWriter('output.avi', -1, 20.0, (640, 480))
+graphRGB = mplfig_to_npimage(fig)
+gh, gw, _ = graphRGB.shape
 
-    while (cap.isOpened()):
-        # ret, frame = cap.read()
-        frame = cv2.imread(r"C:\Users\m\Desktop\wall\wp1820012.jpg")
-        if True:
-            frame = cv2.flip(frame, 0)
-            frame = cv2.resize(frame, (2**9, 2**9))
+while True:
+    ret, frame = cap.read() # frame is a 2D numpy array
+    B = frame[:,:,0].sum(axis=0)
+    line.set_ydata(B)
+    frame[:gh,w-gw:,:] = mplfig_to_npimage(fig)
 
-            # write the flipped frame
-            print(np.array(frame))
-            out.write(np.array(frame))
+    cv2.imshow('frame', frame)
+    writer.write(frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        else:
-            break
-
-    # Release everything if job is finished
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
+cap.release()
+writer.release()

@@ -2,6 +2,7 @@ import numpy as np
 import struct
 from random import randrange
 
+
 def spectrogram(samples, sample_rate, stride_ms=10.0,
                 window_ms=20.0, max_freq=None, eps=1e-14):
     stride_size = int(0.001 * sample_rate * stride_ms)
