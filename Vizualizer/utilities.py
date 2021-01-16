@@ -1,4 +1,6 @@
 import numpy as np
+import struct
+from random import randrange
 
 def spectrogram(samples, sample_rate, stride_ms=10.0,
                 window_ms=20.0, max_freq=None, eps=1e-14):
@@ -64,8 +66,51 @@ def normalize_data(data):
     return (data - min_data) / (max_data - min_data)
 
 
-#
+# https://stackoverflow.com/questions/10848990/rgb-values-to-0-to-1-scale
+# 2. https://uk.wikipedia.org/wiki/%D0%9A%D0%BE%D0%BB%D1%8C%D0%BE%D1%80%D0%B8_HTML
+# https://stackoverflow.com/questions/23624212/how-to-convert-a-float-into-hex
+
 def create_color_comp(amp_value, position, arr_len):
-    # print("amp_value", amp_value)
-    comp = amp_value
-    return [comp, comp, comp]
+    # amp_value is float 32 here but "classicaly" we need just '2 char' per color comp (not 4 in case of float32) (2)
+    res = float(amp_value * 0xffffff)
+    hex_number = hex(struct.unpack('<I', struct.pack('<f', res))[0])
+
+    comps_int_arr = get_rgba_comps_from_hex_string(hex_number)
+    # comps_int_arr = [randrange(255), randrange(255), randrange(255)]
+    # print(comps_int_arr)
+    # if len(comps_int_arr) == 0:
+    #     print('Vova is here', hex_number)
+    #     print(amp_value)
+    # print(hex_number)
+    return comps_int_arr
+
+def get_rgba_comps_from_hex_string(hex):
+    comps_array_len = 4
+    values_substring = hex[2:len(hex)] # remove 0x
+    slice_amount = int(len(values_substring) / comps_array_len) #should be dividable without residue (1) (add check)
+    comps = []
+
+    # similar task in main.py for fft slicing (!)
+    offset_index = 0
+    while offset_index < comps_array_len * slice_amount:
+        hex_slice = values_substring[offset_index:offset_index + slice_amount]
+
+        c_number = int(hex_slice, 16) # 'doesnt work correctly' for alpha channel
+
+        comps.append(c_number)
+        offset_index += slice_amount
+
+        # print('c_number', c_number)
+        # print('slice_amount', slice_amount)
+        # print('offset_index after', offset_index)
+
+    # (!)
+
+    # # temporary fix
+    if len(comps) == 0:
+        comps = [0, 0, 0, 0]
+
+    comps[-1] /= 255 #fix alpha channel
+    return comps
+
+
