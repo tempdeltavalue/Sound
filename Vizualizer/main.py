@@ -1,13 +1,16 @@
 import librosa
 
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 import cv2
 
 import utilities
 import skvideo.io
 import ffmpeg
 import numpy as np
-
+from pylab import *
+from moviepy.video.io.bindings import mplfig_to_npimage
 import os
 
 #https://zulko.github.io/moviepy/getting_started/videoclips.html
@@ -89,35 +92,80 @@ def show_video(start_offset_index, spectrogram, video_side, delta, fps):
     out_video = []
     offset_index = start_offset_index
 
-    while offset_index < spectrogram.shape[1]:
-        image = temp_func2(offset_index, spectrogram, delta, video_side)
+    # prepare a small figure to embed into frame
+    # frame = temp_func2(600, spectrogram, delta, video_side)
+    # h, w, _ = frame.shape
+    #
+    # fig, ax = subplots(figsize=(4, 3), facecolor='w')
+    # B = frame[:, :, 0].sum(axis=0)
+    # line, = ax.plot(B, lw=7)
+    # xlim([0, w])
+    # ylim([30000, 40000])  # setup wide enough range here
+    # box('off')
+    # tight_layout()
 
-        if is_record:
-            temp_img = (image * 255).astype(int)
-            print(temp_img)
-            # print(temp_img)
-            # out.write(temp_img)
-            out_video.append(temp_img)
-        else:
-            cv2.imshow('frame', image)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+    # graphRGB = mplfig_to_npimage(fig)
+    # print("graphRGB.shape", graphRGB.shape)
+    # gh, gw, _ = graphRGB.shape
 
-        # cv2.imshow('frame', image)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
 
-        offset_index += delta
-        print(f'offset_index {offset_index}, len {spectrogram.shape[1]}, len out_video {len(out_video)}')
+    # fig = Figure()
+    # canvas = FigureCanvas(fig)
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111)
+    ax.plot([0, 1, 2, 3, 4], [0, 6, 7, 15, 19])
+    # ax.scatter([0, 1, 2, 3, 4], [1, 3, 8, 12, 27])
+
+    plt.show()
+
+    # while offset_index < spectrogram.shape[1]:
+    #     image = temp_func2(offset_index, spectrogram, delta, video_side)
+    #
+    #     if is_record:
+    #         temp_img = (image * 255).astype(int)
+    #
+    #
+    #         # print(temp_img)
+    #         # print(temp_img)
+    #         # out.write(temp_img)
+    #         out_video.append(temp_img)
+    #     else:
+    #         temp_img = (image * 255).astype(int)
+    #
+    #         # print(frame.shape)
+    #         # print(frame[:, :, 0].shape)
+    #         B = temp_img[:, :, 0].sum(axis=1)
+    #         #
+    #         # print(B)
+    #         # print("w", w)
+    #         # line.set_ydata(B)
+    #         # image[:gh, w - gw:, :] = mplfig_to_npimage(fig)
+    #         axes.plot(x, y, 'r')
+    #         canvas.draw()  # draw the canvas, cache the renderer
+    #
+    #         image2 = np.fromstring(canvas.tostring_rgb(), dtype='uint8')
+    #         cv2.imshow('frame', image)
+    #         cv2.imshow('frame2', image2)
+    #
+    #         if cv2.waitKey(1) & 0xFF == ord('q'):
+    #             break
+    #
+    #     # cv2.imshow('frame', image)
+    #     # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     #     break
+    #
+    #     offset_index += delta
+        # print(f'offset_index {offset_index}, len {spectrogram.shape[1]}, len out_video {len(out_video)}')
 
     # print(np.array(out_video).shape)
     # out.release()
     # vidwrite('video.avi', np.array(out_video))
     # skvideo.io.vwrite("video.avi", out_video)
 
-    clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(out_video, fps=fps)
-    print(clip.duration)
-    clip.write_videofile('my_video.mp4')
+    # clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(out_video, fps=fps)
+    # print(clip.duration)
+    # clip.write_videofile('my_video.mp4')
 
 
 def temp_func2(offset_index, spectrogram, delta, video_side):

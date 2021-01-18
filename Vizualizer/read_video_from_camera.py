@@ -22,14 +22,19 @@ gh, gw, _ = graphRGB.shape
 
 while True:
     ret, frame = cap.read() # frame is a 2D numpy array
+    print(frame.shape)
+    print(frame[:,:,0].shape)
     B = frame[:,:,0].sum(axis=0)
+    print(B.shape)
+    print(B[0])
+    print(sum(frame[:,0]))
     line.set_ydata(B)
     frame[:gh,w-gw:,:] = mplfig_to_npimage(fig)
 
     cv2.imshow('frame', frame)
     writer.write(frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    break
 
 cap.release()
 writer.release()
