@@ -93,8 +93,8 @@ def show_video(start_offset_index, spectrogram, video_side, delta, fps):
     offset_index = start_offset_index
 
     # prepare a small figure to embed into frame
-    # frame = temp_func2(600, spectrogram, delta, video_side)
-    # h, w, _ = frame.shape
+    frame = temp_func2(600, spectrogram, delta, video_side)
+    h, w, _ = frame.shape
     #
     # fig, ax = subplots(figsize=(4, 3), facecolor='w')
     # B = frame[:, :, 0].sum(axis=0)
@@ -112,51 +112,92 @@ def show_video(start_offset_index, spectrogram, video_side, delta, fps):
     # fig = Figure()
     # canvas = FigureCanvas(fig)
     fig = plt.figure()
+    canvas = FigureCanvas(fig)
 
-    ax = fig.add_subplot(111)
-    ax.plot([0, 1, 2, 3, 4], [0, 6, 7, 15, 19])
+    ax = fig.add_subplot(111, projection='3d')
+    z = np.linspace(0, 1, 512)
     # ax.scatter([0, 1, 2, 3, 4], [1, 3, 8, 12, 27])
 
-    plt.show()
+    # plt.show()
 
-    # while offset_index < spectrogram.shape[1]:
-    #     image = temp_func2(offset_index, spectrogram, delta, video_side)
-    #
-    #     if is_record:
-    #         temp_img = (image * 255).astype(int)
-    #
-    #
-    #         # print(temp_img)
-    #         # print(temp_img)
-    #         # out.write(temp_img)
-    #         out_video.append(temp_img)
-    #     else:
-    #         temp_img = (image * 255).astype(int)
-    #
-    #         # print(frame.shape)
-    #         # print(frame[:, :, 0].shape)
-    #         B = temp_img[:, :, 0].sum(axis=1)
-    #         #
-    #         # print(B)
-    #         # print("w", w)
-    #         # line.set_ydata(B)
-    #         # image[:gh, w - gw:, :] = mplfig_to_npimage(fig)
-    #         axes.plot(x, y, 'r')
-    #         canvas.draw()  # draw the canvas, cache the renderer
-    #
-    #         image2 = np.fromstring(canvas.tostring_rgb(), dtype='uint8')
-    #         cv2.imshow('frame', image)
-    #         cv2.imshow('frame2', image2)
-    #
-    #         if cv2.waitKey(1) & 0xFF == ord('q'):
-    #             break
-    #
-    #     # cv2.imshow('frame', image)
-    #     # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     #     break
-    #
-    #     offset_index += delta
-        # print(f'offset_index {offset_index}, len {spectrogram.shape[1]}, len out_video {len(out_video)}')
+    while offset_index < spectrogram.shape[1]:
+        image = temp_func2(offset_index, spectrogram, delta, video_side)
+
+        if is_record:
+            temp_img = (image * 255).astype(int)
+
+
+            # print(temp_img)
+            # print(temp_img)
+            # out.write(temp_img)
+            out_video.append(temp_img)
+        else:
+            # temp_img = (image * 255).astype(int)
+
+            # print(frame.shape)
+            # print(frame[:, :, 0].shape)
+            B = image[:, :, 0].sum(axis=1)
+            #
+            # print(B)
+            # print("w", w)
+            # line.set_ydata(B)
+            B = utilities.normalize_data(B)
+
+
+            # convert to 2d
+
+            B = B.astype(int)
+            print('B', B.shape)
+            repetitions = len(B)
+
+            matrix = np.tile(B, (repetitions, 1))
+            print('result shape', matrix.shape)
+
+            X = np.arange(0, matrix.shape[1], 1)
+            Y = np.arange(0, matrix.shape[0], 1)
+            X, Y = np.meshgrid(X, Y)
+
+            print("x.shape", X.shape)
+            print("y.shape", Y.shape)
+
+            # xlabel('x')
+            # ylabel('y')
+            # # zlabel('z')
+            #
+            # ax.plot(x, y, z)
+
+            surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+
+            # Customize the z axis.
+            ax.zaxis.set_major_locator(LinearLocator(10))
+            ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+            #
+            # # Add a color bar which maps values to colors.
+            fig.colorbar(surf, shrink=0.5, aspect=5)
+
+            plt.show()
+
+            # ax.plot(np.arange(len(B)), result)
+
+            np_image = mplfig_to_npimage(fig)
+            ax.clear()
+            # image[:200, w - 200:, :]
+            # canvas.draw()  # draw the canvas, cache the renderer
+            #
+            # image2 = np.fromstring(canvas.tostring_rgb(), dtype='uint8')
+            # image2 = image2.resize(200, 200)
+            cv2.imshow('frame', image)
+            cv2.imshow('frame2', np_image)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # cv2.imshow('frame', image)
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
+
+        offset_index += delta
+        print(f'offset_index {offset_index}, len {spectrogram.shape[1]}, len out_video {len(out_video)}')
 
     # print(np.array(out_video).shape)
     # out.release()
@@ -195,5 +236,3 @@ if __name__ == '__main__':
     # cv2.imshow("win", np_arr)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-
-
