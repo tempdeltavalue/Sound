@@ -11,6 +11,7 @@ import numpy as np
 import os
 from scipy.signal import lfilter
 import scipy.io.wavfile as wavfile
+import colorednoise
 
 
 # https://sound.media.mit.edu/resources/KEMAR.html
@@ -102,7 +103,7 @@ def locate_sound_hrtf(elevation, azimuth, sound):
     return left, right
 
 
-def rotate_sound_horizontally(sound_mono, mode="hrtf"):
+def rotate_sound_horizontally(sound_mono, start_angle=0, mode="hrtf"):
     """
     Demo for rotation sound source
     :param sound_mono:
@@ -118,12 +119,13 @@ def rotate_sound_horizontally(sound_mono, mode="hrtf"):
     rights = []
 
     i = 0
-    for az in range(0, 360, step):
+    for az in range(start_angle, start_angle + 360, step):
+        az = az % 360
         i += 1
         if mode == 'hrtf':
-            left, right = locate_sound_hrtf(elev, az, mono_sound[(i - 1) * chunk:i * chunk])
+            left, right = locate_sound_hrtf(elev, az, sound_mono[(i - 1) * chunk:i * chunk])
         else:
-            left, right = locate_sound_binaural(az, mono_sound[(i - 1) * chunk:i * chunk])
+            left, right = locate_sound_binaural(az, sound_mono[(i - 1) * chunk:i * chunk])
         lefts.append(left)
         rights.append(right)
 
@@ -132,18 +134,86 @@ def rotate_sound_horizontally(sound_mono, mode="hrtf"):
     return left_channel, right_channel
 
 
-if __name__ == '__main__':
+def two_sound_demo():
+    mode = "hrtf"
+    # mode = "binaural"
+
+    rate, mono_sound1 = wavfile.read('preamble.wav', 'rb')
+    rate, mono_sound2 = wavfile.read('PinkPanther60.wav', 'rb')
+
+    left_channel1, right_channel1 = locate_sound_hrtf(0, 90, mono_sound1)
+    left_channel2, right_channel2 = locate_sound_hrtf(0, 270, mono_sound2[:421110])
+    left_channel = left_channel1 + left_channel2
+    right_channel = right_channel1 + right_channel2
+    print("left_channel len", len(left_channel))
+
+    result = np.array([left_channel, right_channel]).T.astype(np.int16)
+
+    wavfile.write(mode + '_2song_out.wav', rate, result)
+
+
+def rotation_demo():
     mode = "hrtf"
     # mode = "binaural"
 
     rate, mono_sound = wavfile.read('preamble.wav', 'rb')
-    print("rate", rate)
-    print("N", len(mono_sound))
+    print(f"Rate: {rate}, N={len(mono_sound)}")
 
-    left_channel, right_channel = rotate_sound_horizontally(mono_sound, mode=mode)
+    left_channel, right_channel = rotate_sound_horizontally(mono_sound, start_angle=0, mode=mode)
 
     print("left_channel len", len(left_channel))
 
     result = np.array([left_channel, right_channel]).T.astype(np.int16)
 
-    wavfile.write(mode+'_out.wav', rate, result)
+    wavfile.write(mode + '_out.wav', rate, result)
+
+
+def generate_sine(N, amp, w):
+    sine = (np.sin(w * np.arange(0, N)) * amp).astype(int)
+    return sine
+
+def generate_noise(N, amp, beta):
+    noise = colorednoise.powerlaw_psd_gaussian(beta, N)
+    noise_range = max(noise) - min(noise)
+    noise /= noise_range
+    noise *= amp
+    return noise
+
+
+def noise_demo():
+    rate = 22050
+    N = 421110
+    int16_range = 30_000
+    white_noise = generate_noise(N, int16_range, 1)
+    pink_noise = generate_noise(N, int16_range, 2)
+
+    #Locate two type of noise to create an gradient field illusion
+    left_channel1, right_channel1 = locate_sound_hrtf(0, 90, white_noise)
+    left_channel2, right_channel2 = locate_sound_hrtf(0, 270, pink_noise)
+    left_channel = left_channel1+left_channel2
+    right_channel = right_channel1 + right_channel2
+    result = np.array([left_channel, right_channel]).T.astype(np.int16)
+    wavfile.write('two_noise_out.wav', rate, result)
+
+def noise_rotation_demo():
+    rate = 22050
+    N = 421110
+    int16_range = 30_000
+    white_noise = generate_noise(N, int16_range, 1)
+    pink_noise = generate_noise(N, int16_range, 2)
+
+    #Locate two type of noise to create an gradient field illusion
+    left_channel1, right_channel1 = rotate_sound_horizontally(white_noise)
+    left_channel2, right_channel2 = rotate_sound_horizontally(pink_noise)
+    left_channel = left_channel1+left_channel2
+    right_channel = right_channel1 + right_channel2
+    result = np.array([left_channel, right_channel]).T.astype(np.int16)
+    wavfile.write('two_noise_rotation_out.wav', rate, result)
+
+
+if __name__ == '__main__':
+    # two_sound_demo()
+    rotation_demo()
+    # noise_demo()
+    # noise_rotation_demo()
+    pass
