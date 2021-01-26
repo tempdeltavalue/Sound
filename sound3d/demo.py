@@ -84,6 +84,7 @@ def locate_sound_binaural(azimuth, sound):
 def locate_sound_hrtf(elevation, azimuth, sound):
     # Compact KEMAR data stores angles only for the left ear. We need to simulate the same rotation for the right ear
     # assuming the data is symmetrical
+    azimuth = azimuth % 360
     if azimuth <= 180:
         angle = azimuth
     else:
@@ -210,10 +211,48 @@ def noise_rotation_demo():
     result = np.array([left_channel, right_channel]).T.astype(np.int16)
     wavfile.write('two_noise_rotation_out.wav', rate, result)
 
+def clicks_demo():
+    mode = "hrtf"
+
+    rate, click = wavfile.read('knock.wav', 'rb')
+    all_clicks_count = 18
+    period = int(1.5*rate)
+    N = all_clicks_count * period
+    duration = N/rate
+    print("Duration", duration)
+
+    lefts = []
+    rights = []
+    for i in range(all_clicks_count):
+        left, right = locate_sound_hrtf(0, i*int(360/all_clicks_count), click)
+        lefts.append(left)
+        rights.append(right)
+    left_channel = np.zeros(N)
+    right_channel = np.zeros(N)
+
+    print("clicks count", len(lefts))
+
+    time = 0
+    #set clicks each 3 sec
+    for i in range(0, len(lefts)):
+        # loc = time
+        loc = np.random.randint(0,len(left_channel)-len(lefts[i]))
+        left_channel[loc:loc+len(lefts[i])] = lefts[i]
+        right_channel[loc:loc+len(rights[i])] = rights[i]
+        time += period
+
+    print("left_channel len", len(left_channel))
+    print("left_channel max", max(left_channel))
+
+
+    result = np.array([left_channel, right_channel]).T.astype(np.int16)
+
+    wavfile.write(mode + '_clicks_out.wav', rate, result)
 
 if __name__ == '__main__':
     # two_sound_demo()
-    rotation_demo()
+    # rotation_demo()
     # noise_demo()
     # noise_rotation_demo()
+    clicks_demo()
     pass
