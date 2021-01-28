@@ -3,6 +3,12 @@ import struct
 from random import randrange
 
 
+
+# convert to custom range
+# https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
+
+
+
 def spectrogram(samples, sample_rate, stride_ms=10.0,
                 window_ms=20.0, max_freq=None, eps=1e-14):
     stride_size = int(0.001 * sample_rate * stride_ms)
@@ -113,5 +119,40 @@ def get_rgba_comps_from_hex_string(hex):
 
     comps[-1] /= 255 #fix alpha channel
     return comps
+
+
+def remap( x, oMin, oMax, nMin, nMax ):
+    #range check
+    if oMin == oMax:
+        print("Warning: Zero input range")
+        return None
+
+    if nMin == nMax:
+        print("Warning: Zero output range")
+        return None
+
+    #check reversed input range
+    reverseInput = False
+    oldMin = min( oMin, oMax )
+    oldMax = max( oMin, oMax )
+    if not oldMin == oMin:
+        reverseInput = True
+
+    #check reversed output range
+    reverseOutput = False
+    newMin = min( nMin, nMax )
+    newMax = max( nMin, nMax )
+    if not newMin == nMin :
+        reverseOutput = True
+
+    portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
+    if reverseInput:
+        portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin)
+
+    result = portion + newMin
+    if reverseOutput:
+        result = newMax - portion
+
+    return result
 
 

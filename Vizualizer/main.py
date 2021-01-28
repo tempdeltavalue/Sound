@@ -5,7 +5,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import cv2
 
-from Vizualizer import utilities
+import utilities
 import numpy as np
 from pylab import *
 from moviepy.video.io.bindings import mplfig_to_npimage
@@ -120,6 +120,17 @@ def show_video(start_offset_index, spectrogram, video_side, delta, fps):
 
     while offset_index < spectrogram.shape[1]:
         image = temp_func2(offset_index, spectrogram, delta, video_side)
+        print("image {} image[0][0] {}".format(image.shape, image[0][0]))
+        remaped_img = utilities.remap(image, 0, 1, -1, 1)
+        print("TEST", utilities.remap(0, 0, 1, -1, 1))
+        print(utilities.remap(0.5, 0, 1, -1, 1))
+        print(utilities.remap(1, 0, 1, -1, 1))
+
+
+        print("remaped_img {} remaped_img[0][0] {}".format(remaped_img.shape, remaped_img[0][0]))
+        # assert image.shape == remaped_img.shape, "assert: image shape {}, remaped_img shape {}".format(image.shape,
+        #                                                                                        remaped_img.shape)
+
 
         if is_record:
             temp_img = (image * 255).astype(int)
