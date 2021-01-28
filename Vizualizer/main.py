@@ -5,9 +5,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import cv2
 
-import utilities
-import skvideo.io
-import ffmpeg
+from Vizualizer import utilities
 import numpy as np
 from pylab import *
 from moviepy.video.io.bindings import mplfig_to_npimage
